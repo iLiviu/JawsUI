@@ -1,5 +1,5 @@
 /**
-* Service interacting with the JAWS API.
+* Service interacting with the JAWS 1.1 API.
 */
 angular.module('JawsUI.jawsService', [
 	'JawsUI.constants',
@@ -28,7 +28,7 @@ angular.module('JawsUI.jawsService', [
 			});
 			
 			/**
-			* perform a HTTP GET request to the API
+			* perform an HTTP GET request to the API
 			* @param {string} method the method to execute
 			* @param {string} [config] custom config for the HTTP request 
 			* @return {HttpPromise} a promise object
@@ -38,7 +38,7 @@ angular.module('JawsUI.jawsService', [
 			}
 			
 			/**
-			* perform a HTTP DELETE request to the API
+			* perform an HTTP DELETE request to the API
 			* @param {string} method the method to execute
 			* @param {string} [config] custom config for the HTTP request 
 			* @return {HttpPromise} a promise object
@@ -48,7 +48,7 @@ angular.module('JawsUI.jawsService', [
 			}			
 			
 			/**
-			* perform a HTTP POST request to the API
+			* perform an HTTP POST request to the API
 			* @param {string} method the method to execute
 			* @param {string} data the data to post
 			* @param {string} [config] custom config for the HTTP request 
@@ -56,22 +56,7 @@ angular.module('JawsUI.jawsService', [
 			*/
 			function postRequest(method,data,config) {
 				return $http.post(CONFIG.API_PATH+method+'&_r='+Math.random(),data,config);
-			}
-			
-			/**
-			* get the names of all object's properties
-			* @param {Object} object for which to obtain property names
-			* @return {string[]} an array with all property names
-			*/
-			function propsToArray(obj) {
-				var props = [];
-				for (var prop in obj) {
-					if (obj.hasOwnProperty(prop)) {
-						props.push(prop);
-					}
-				}
-				return props;
-			}			
+			}		
 			
 			/**
 			* get available databases
@@ -81,10 +66,7 @@ angular.module('JawsUI.jawsService', [
 				var promise = $q.defer();
 				getRequest('databases?','')
 					.then(function(response) {
-						var dbs = response.data.results.reduce(function(a, b) {
-							return a.concat(b);
-						});
-						promise.resolve(dbs);
+						promise.resolve(response.data.databases);
 					},function (response)  {
 						promise.reject(response);
 					});
@@ -101,7 +83,11 @@ angular.module('JawsUI.jawsService', [
 				var promise = $q.defer();
 				getRequest('tables?database='+escape(dbName)+'&describe=false')
 					.then(function(response) {
-						promise.resolve(propsToArray(response.data[dbName]));
+						var tables = [];
+						response.data[0].tables.forEach(function(table) {
+							tables.push(table.name);
+						});
+						promise.resolve(tables);
 					},function (response)  {
 						promise.reject(response);
 					});	
@@ -118,9 +104,9 @@ angular.module('JawsUI.jawsService', [
 				getRequest('tables?database='+escape(dbName)+'&describe=true&tables='+escape(table))
 					.then(function(response) {
 						var columns = [];
-						response.data[dbName][table].results.forEach(function(item) {
-							columns.push(item[0]);
-						});
+						response.data[0].tables[0].columns.forEach(function(column) {
+							columns.push(column.name);
+						});						
 						promise.resolve(columns);
 					},function (response)  {
 						promise.reject(response);
@@ -136,7 +122,11 @@ angular.module('JawsUI.jawsService', [
 				var promise = $q.defer();
 				getRequest('parquet/tables?describe=false')
 					.then(function(response) {
-						promise.resolve(propsToArray(response.data.None));
+						var tables = [];
+						response.data[0].tables.forEach(function(table) {
+							tables.push(table.name);
+						});
+						promise.resolve(tables);
 					},function (response)  {
 						promise.reject(response);
 					});	
@@ -153,9 +143,9 @@ angular.module('JawsUI.jawsService', [
 				getRequest('parquet/tables?describe=true&tables='+escape(table))
 					.then(function(response) {
 						var columns = [];
-						response.data.None[table].results.forEach(function(item) {
-							columns.push(item[0]);
-						});
+						response.data[0].tables[0].columns.forEach(function(column) {
+							columns.push(column.name);
+						});						
 						promise.resolve(columns);
 					},function (response)  {
 						promise.reject(response);
@@ -216,9 +206,9 @@ angular.module('JawsUI.jawsService', [
 			*/
 			function getQueryInfo(queryId) {
 				var promise = $q.defer();
-				getRequest('queryInfo?queryID='+escape(queryId))
+				getRequest('queries?queryID='+escape(queryId))
 					.then(function(response) {
-						promise.resolve(response.data);
+						promise.resolve(response.data.queries[0]);
 					},function (response) {
 						promise.reject(response);
 					});
@@ -232,7 +222,7 @@ angular.module('JawsUI.jawsService', [
 			* @return {Promise} a promise object
 			*/
 			function deleteQuery(queryId) {
-				return deleteRequest('query?queryID='+escape(queryId));
+				return deleteRequest('queries/'+queryId);
 			}
 			
 			/**
@@ -273,7 +263,7 @@ angular.module('JawsUI.jawsService', [
 				var promise = $q.defer();
 				getRequest('results?queryID='+escape(queryId)+'&offset='+escape(offset)+'&limit='+limit)
 					.then(function(response) {
-						promise.resolve(response.data);
+						promise.resolve({"schema":response.data.schema, "results":response.data.result});
 					},function (response) {
 						promise.reject(response);
 					});
@@ -288,7 +278,7 @@ angular.module('JawsUI.jawsService', [
 			* @return {Promise} a promise object
 			*/
 			function registerParquetTable(filePath,tableName){
-				return postRequest('parquet/registerTable?path='+escape(filePath)+'&name='+escape(tableName)+'&overwrite=false','');
+				return postRequest('parquet/tables?path='+escape(filePath)+'&name='+escape(tableName)+'&overwrite=false','');
 			}
 			
 			/**
@@ -297,7 +287,7 @@ angular.module('JawsUI.jawsService', [
 			* @return {Promise} a promise object
 			*/
 			function deleteParquetTable(tableName){
-				return deleteRequest('parquet/table?name='+escape(tableName));
+				return deleteRequest('parquet/tables/'+escape(tableName));
 			}
 			
 		}
