@@ -1,4 +1,4 @@
-# JawsUI
+# JawsUI for Jaws 1.0.x
 JawsUI is a user interface for [Jaws] and [hdfs-tachyon-file-browser] projects. 
 
 ## Build
