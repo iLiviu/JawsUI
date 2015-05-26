@@ -199,8 +199,6 @@ angular.module('JawsUI.jawsService', [
 					startTimestamp = 0;
 				getRequest('logs?queryID='+escape(queryId)+'&startTimestamp='+escape(startTimestamp)+'&limit='+limit)
 					.then(function(response) {
-						if (startTimestamp)
-							response.data.logs.shift();
 						promise.resolve(response.data);
 					},function (response) {
 						promise.reject(response);

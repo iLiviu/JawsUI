@@ -342,10 +342,16 @@ angular.module('JawsUI.query.controller', [
 		function displayQueryLogs() {
 			$scope.queryLogsBusy = true;
 			displayLogsTimeout = $timeout(function() {
+				var queryLogsStamp=lastLogStamp;
 				jawsService.getQueryLogs(curQueryId,lastLogStamp,CONFIG.LOGS_PER_PAGE)
 					.then(function(response) {
+						var logsNum = response.logs.length;
+						//remove first log as we already processed it in last request
+						if (queryLogsStamp!==0)
+							response.logs.shift();
+						
 						addLogs(response.logs);
-						if (response.logs.length >= CONFIG.LOGS_PER_PAGE) 
+						if (logsNum >= CONFIG.LOGS_PER_PAGE) 
 							displayQueryLogs();
 						else
 							$scope.queryLogsBusy = false;
@@ -360,8 +366,14 @@ angular.module('JawsUI.query.controller', [
 		function waitForResults() {
 			$scope.queryLogsBusy = true;
 			queryLogsTimeout = $timeout(function() {
+				var queryLogsStamp=lastLogStamp;
 				jawsService.getQueryLogs(curQueryId,lastLogStamp,CONFIG.LOGS_PER_PAGE)
-					.then(function(response) {		
+					.then(function(response) {
+						var logsNum = response.logs.length;
+						//remove first log as we already processed it in last request
+						if (queryLogsStamp!==0)
+							response.logs.shift();
+							
 						addLogs(response.logs);
 						switch (response.status) {
 							case QUERY_STATUS.IN_PROGRESS:
@@ -372,13 +384,17 @@ angular.module('JawsUI.query.controller', [
 								switchTab(TABIDX_RESULTS);
 								displayQueryResults();
 								//make sure we display remaining logs, if any
-								if (response.logs.length >= CONFIG.LOGS_PER_PAGE)
+								if (logsNum >= CONFIG.LOGS_PER_PAGE)
 									displayQueryLogs();
 								else
 									$scope.queryLogsBusy = false;
 								break;
 							case QUERY_STATUS.FAILED:
-								$scope.queryLogsBusy = false;
+								//make sure we display remaining logs, if any
+								if (logsNum >= CONFIG.LOGS_PER_PAGE)
+									displayQueryLogs();
+								else
+									$scope.queryLogsBusy = false;
 								$scope.showError("Query failed!");
 						}
 					},function(response) {$scope.warnNetworkError();});
