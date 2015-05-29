@@ -8,11 +8,9 @@
 		<div class="scrollable-container">
 			<md-list layout="column" md-padding>
 				<md-item ng-repeat="file in files">
-					<div layout="row">
-						<div>
-							<md-icon class="md-primary" ng-if="file.isFolder" md-svg-src="img/icons/ic_folder_24px.svg"></md-icon>
-						</div>
-						<md-button ng-click="selectFile(file)">
+					<div layout="row" layout-align="center center">
+						<div class="s24"><md-icon class="md-primary" ng-if="file.isFolder" md-svg-src="img/icons/ic_folder_24px.svg"></md-icon></div>
+						<md-button ng-click="selectFile(file)" flex="">
 							{{file.name }}
 						</md-button>
 					</div>

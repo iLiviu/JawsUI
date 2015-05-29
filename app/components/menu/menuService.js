@@ -231,7 +231,7 @@ angular.module('JawsUI.menuService', [
 			title: 'Browse HDFS'
 		});
 		sections.push({
-			name: 'MAP FILES',
+			name: 'MAP PARQUET FILES',
 			type: 'toggle',
 			url: '',
 			pages: fsSections
