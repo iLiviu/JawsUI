@@ -95,21 +95,21 @@
 						'bottom': '0px'
                     });
 
-                    // reduce width of last column by width of scrollbar
+                    // reduce width of last column by width of scrollbar if both scrollbars are present
                     var tbody = elem.querySelector('tbody');
-                    var scrollBarWidth = tbody.offsetWidth - tbody.clientWidth;
-                    if (scrollBarWidth > 0) {
+                    var vScrollBarWidth = tbody.offsetWidth - tbody.clientWidth;
+					var hScrollBarHeight = tbody.offsetHeight - tbody.clientHeight;
+                    if (vScrollBarWidth > 0 && hScrollBarHeight > 0) {
 						//enlarge horizontal scrolling when reaching if vertical scroll is present
                         var lastColumn = elem.querySelector('thead tr:first-child th:last-child');
-                        lastColumn.style.width = (lastColumn.offsetWidth + scrollBarWidth) + 'px';
+                        lastColumn.style.width = (lastColumn.offsetWidth + vScrollBarWidth) + 'px';
                         lastColumn.style.minWidth = lastColumn.style.width;
                         lastColumn.style.maxWidth = lastColumn.style.width;
 					
                         // for some reason trimming the width by 2px lines everything up better
-                        scrollBarWidth -= 2;
+                        vScrollBarWidth -= 2;
                         lastColumn = elem.querySelector('tbody tr:first-child td:last-child');
-                        lastColumn.style.width = (lastColumn.offsetWidth - scrollBarWidth) + 'px';
-
+                        lastColumn.style.width = (lastColumn.offsetWidth - vScrollBarWidth) + 'px';
                     }
                 });
             }
